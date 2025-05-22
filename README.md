@@ -28,7 +28,7 @@ The **Abacus Game** is an interactive, web-based educational tool designed to he
 
 ## Demo
 
-Try the Abacus Game live: [Abacus Game Demo]([#](https://abacus-game.vercel.app/)) *(Replace with actual deployment link)*
+Try the Abacus Game live: [Abacus Game Demo](https://abacus-game.vercel.app/)
 
 A screenshot of the game is shown above. For a live experience, follow the installation instructions below to run it locally or visit the demo link.
 
