@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abacus Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-2">
+    <div class="glass-container p-3 rounded-xl w-full max-w-4xl sm:p-8">
+        <!-- Header: Title, Dark Mode Toggle, Max Digits -->
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-2">
+            <h1 class="text-center text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-green-600 animate-bounce-in">Abacus Game: Match the Number!</h1>
+            <div class="flex items-center space-x-4 mt-4 sm:mt-0">
+                <div class="flex items-center">
+                    <label for="maxDigits" class="font-medium mr-2 text-black dark:text-[#e0e0e0]">Max Digits (1-5):</label>
+                    <input type="number" id="maxDigits" min="1" max="5" value="5" class="w-16 p-1 rounded border border-gray-500 text-center">
+                </div>
+                <button id="darkModeToggle" class="modern-button text-white font-semibold px-4 py-1 rounded-full">
+                    <i id="darkModeIcon" class="fas fa-sun"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Score and Timer Section -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <!-- Score -->
+            <div class="score-container text-center p-2 rounded-lg relative">
+                <h2 class="score-card font-semibold text-lg mb-2">Score</h2>
+                <div class="score-text font-semibold text-sm">
+                    Correct Answers: <span id="correctAnswers">0</span><br>
+                    Fastest Time: <span id="fastestTime">N/A</span>s<br>
+                    Attempts: <span id="attempts">0</span>
+                </div>
+                <button id="clearHistoryButton" class="absolute top-2 right-2 text-red-500 hover:text-red-700 dark:text-red-300 dark:hover:text-red-500" title="Clear History">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <!-- Timer -->
+            <div class="timer-container text-center p-2 rounded-lg">
+                <h2 class="time-text text-lg font-semibold mb-2">Timer: <span id="timer">0</span>s</h2>
+                <div class="flex justify-center space-x-2">
+                    <button id="timerToggle" class="timer-button text-white font-semibold px-4 py-1 rounded-full bg-green-500 hover:bg-green-600">Start</button>
+                    <button id="restartTimer" class="modern-button text-white font-semibold px-4 py-1 rounded-full">Restart</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Target Number and Abacus Number in Same Row -->
+        <section class="flex flex-col sm:flex-row justify-around items-center mb-3 space-y-4 sm:space-y-0">
+            <div class="text-center">
+                <h2 class="Target-Number text-lg font-semibold mb-2">Target Number:</h2>
+                <div id="targetNumber" class="text-5xl font-bold target-number">0</div>
+            </div>
+            <div class="text-center">
+                <h2 class="Abacus-Number text-lg font-semibold mb-2">Abacus Number:</h2>
+                <div id="currentValue" class="text-5xl font-bold">0</div>
+            </div>
+        </section>
+
+        <!-- Abacus Section -->
+        <section id="abacusPlatform" class="wooden-platform flex justify-between mb-6 px-2 py-4">
+            <div class="flex-1 text-center">
+                <div class="text-sm font-medium text-black dark:text-[#e0e0e0] bg-gray-200 dark:bg-gray-700 inline-block px-2 py-1 rounded-t">T-Th</div>
+                <div class="rod" data-rod-id="tenThousands">
+                    <div class="rod-pole"></div>
+                    <div id="tenThousands" class="bead-container"></div>
+                </div>
+                <div class="flex justify-center space-x-2 mt-2">
+                    <button class="adjust-button bg-red-400 hover:bg-red-500 text-red-800 dark:text-[#e0e0e0] font-bold px-3 py-1 rounded">-</button>
+                    <button class="adjust-button bg-blue-400 hover:bg-blue-500 text-white font-bold px-3 py-1 rounded">+</button>
+                </div>
+            </div>
+            <div class="flex-1 text-center">
+                <div class="text-sm font-medium text-black dark:text-[#e0e0e0] bg-gray-200 dark:bg-gray-700 inline-block px-2 py-1 rounded-t">Th</div>
+                <div class="rod" data-rod-id="thousands">
+                    <div class="rod-pole"></div>
+                    <div id="thousands" class="bead-container"></div>
+                </div>
+                <div class="flex justify-center space-x-2 mt-2">
+                    <button class="adjust-button bg-red-400 hover:bg-red-500 text-red-800 dark:text-[#e0e0e0] font-bold px-3 py-1 rounded">-</button>
+                    <button class="adjust-button bg-blue-400 hover:bg-blue-500 text-white font-bold px-3 py-1 rounded">+</button>
+                </div>
+            </div>
+            <div class="flex-1 text-center">
+                <div class="text-sm font-medium text-black dark:text-[#e0e0e0] bg-gray-200 dark:bg-gray-700 inline-block px-2 py-1 rounded-t">H</div>
+                <div class="rod" data-rod-id="hundreds">
+                    <div class="rod-pole"></div>
+                    <div id="hundreds" class="bead-container"></div>
+                </div>
+                <div class="flex justify-center space-x-2 mt-2">
+                    <button class="adjust-button bg-red-400 hover:bg-red-500 text-red-800 dark:text-[#e0e0e0] font-bold px-3 py-1 rounded">-</button>
+                    <button class="adjust-button bg-blue-400 hover:bg-blue-500 text-white font-bold px-3 py-1 rounded">+</button>
+                </div>
+            </div>
+            <div class="flex-1 text-center">
+                <div class="text-sm font-medium text-black dark:text-[#e0e0e0] bg-gray-200 dark:bg-gray-700 inline-block px-2 py-1 rounded-t">T</div>
+                <div class="rod" data-rod-id="tens">
+                    <div class="rod-pole"></div>
+                    <div id="tens" class="bead-container"></div>
+                </div>
+                <div class="flex justify-center space-x-2 mt-2">
+                    <button class="adjust-button bg-red-400 hover:bg-red-500 text-red-800 dark:text-[#e0e0e0] font-bold px-3 py-1 rounded">-</button>
+                    <button class="adjust-button bg-blue-400 hover:bg-blue-500 text-white font-bold px-3 py-1 rounded">+</button>
+                </div>
+            </div>
+            <div class="flex-1 text-center">
+                <div class="text-sm font-medium text-black dark:text-[#e0e0e0] bg-gray-200 dark:bg-gray-700 inline-block px-2 py-1 rounded-t">O</div>
+                <div class="rod" data-rod-id="units">
+                    <div class="rod-pole"></div>
+                    <div id="units" class="bead-container"></div>
+                </div>
+                <div class="flex justify-center space-x-2 mt-2">
+                    <button class="adjust-button bg-red-400 hover:bg-red-500 text-red-800 dark:text-[#e0e0e0] font-bold px-3 py-1 rounded">-</button>
+                    <button class="adjust-button bg-blue-400 hover:bg-blue-500 text-white font-bold px-3 py-1 rounded">+</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer: Status and Controls -->
+        <footer class="text-center">
+            <div class="text-lg status-message mb-6" id="status">Keep adjusting the beads.</div>
+            <div class="flex justify-center space-x-4">
+                <button id="submitButton" class="modern-button text-white font-semibold px-6 py-2 rounded-full">Submit</button>
+                <button id="newQuestionButton" class="modern-button text-white font-semibold px-6 py-2 rounded-full">New Question</button>
+                <button id="clearAbacusButton" class="modern-button text-white font-semibold px-6 py-2 rounded-full">Clear Abacus</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Try Again Popup -->
+    <div id="overlay" class="overlay"></div>
+    <div id="tryAgainPopup" class="popup">
+        <h2 class="popup-text text-xl font-semibold  mb-4">Try Again!</h2>
+        <p class="mb-4">Your number doesn't match the target. Keep adjusting the beads.</p>
+        <button id="continueButton" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-full">Continue</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
