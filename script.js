@@ -1,4 +1,3 @@
-// Constants
 const rodOrder = ['tenThousands', 'thousands', 'hundreds', 'tens', 'units'];
 const rodMultipliers = {
     tenThousands: 10000,
@@ -8,7 +7,6 @@ const rodMultipliers = {
     units: 1
 };
 
-// State of the abacus
 const abacusState = {
     tenThousands: 0,
     thousands: 0,
@@ -23,39 +21,33 @@ let timerInterval = null;
 let timerSeconds = 0;
 let isTimerRunning = false;
 
-// Score Tracking
 let stats = JSON.parse(localStorage.getItem('abacusGameStats')) || {
     correctAnswers: 0,
     fastestTime: null,
     attempts: 0
 };
 
-// Sound Effects (Child-Friendly)
-const popSound = new Audio('./pop.mp3'); // Soft pop for beads
-const tinkleSound = new Audio('./success.mp3'); // Cheerful tinkle for success
-const boopSound = new Audio('./failure.mp3'); // Gentle boop for try again
+const popSound = new Audio('./sounds/pop.mp3');
+const tinkleSound = new Audio('./sounds/success.mp3');
+const boopSound = new Audio('./sounds/failure.mp3');
 
-// Update Score Display
 function updateScoreDisplay() {
     document.getElementById('correctAnswers').textContent = stats.correctAnswers;
     document.getElementById('fastestTime').textContent = stats.fastestTime !== null ? stats.fastestTime : 'N/A';
     document.getElementById('attempts').textContent = stats.attempts;
 }
 
-// Save Stats to Local Storage
 function saveStats() {
     localStorage.setItem('abacusGameStats', JSON.stringify(stats));
     updateScoreDisplay();
 }
 
-// Clear History
 function clearHistory() {
     stats = { correctAnswers: 0, fastestTime: null, attempts: 0 };
     localStorage.removeItem('abacusGameStats');
     updateScoreDisplay();
 }
 
-// Timer Functions
 function startTimer() {
     if (!isTimerRunning) {
         isTimerRunning = true;
@@ -97,14 +89,12 @@ function restartTimer() {
     timerButton.classList.remove('running');
 }
 
-// Generate a random target number based on max digits
 function generateTargetNumber() {
     const maxDigits = parseInt(document.getElementById('maxDigits').value) || 5;
     const maxNumber = Math.pow(10, maxDigits) - 1;
     return Math.floor(Math.random() * (maxNumber + 1));
 }
 
-// Render beads on a rod
 function renderBeads(rodId, count, animateNew = false) {
     const rodElement = document.getElementById(rodId);
     const rod = rodElement.closest('.rod');
@@ -133,28 +123,41 @@ function renderBeads(rodId, count, animateNew = false) {
             }
         }
         rod.classList.remove('pulse');
-    }, 300);
+    }, 10);
 }
 
-// Adjust beads on a rod with carry-over logic
 function adjustBeads(rodId, change) {
     let currentValue = abacusState[rodId] + change;
+    const rodIndex = rodOrder.indexOf(rodId);
+
     if (currentValue > 9) {
         currentValue = 0;
-        const rodIndex = rodOrder.indexOf(rodId);
-        if (rodIndex > 0) { // Only carry over if not tenThousands
+        if (rodIndex > 0) {
             const nextRodId = rodOrder[rodIndex - 1];
             renderBeads(rodId, currentValue);
             setTimeout(() => {
                 adjustBeads(nextRodId, 1);
             }, 300);
         } else {
-            // For tenThousands, reset to 0 without carry-over
             renderBeads(rodId, currentValue);
         }
     } else if (currentValue < 0) {
-        currentValue = 0;
-        renderBeads(rodId, currentValue);
+        if (rodIndex > 0) {
+            const nextRodId = rodOrder[rodIndex - 1];
+            if (abacusState[nextRodId] > 0) {
+                currentValue = 9;
+                renderBeads(rodId, currentValue);
+                setTimeout(() => {
+                    adjustBeads(nextRodId, -1);
+                }, 300);
+            } else {
+                currentValue = 0;
+                renderBeads(rodId, currentValue);
+            }
+        } else {
+            currentValue = 0;
+            renderBeads(rodId, currentValue);
+        }
     } else {
         renderBeads(rodId, currentValue, change > 0);
     }
@@ -162,17 +165,15 @@ function adjustBeads(rodId, change) {
     updateUI();
 }
 
-// Calculate the current value of the abacus
 function calculateAbacusValue() {
     return rodOrder.reduce((total, rodId) => total + abacusState[rodId] * rodMultipliers[rodId], 0);
 }
 
-// Trigger confetti celebration with variety
 function celebrate() {
     if (isCelebrating) return;
     isCelebrating = true;
-    const particleCount = Math.floor(Math.random() * 50) + 100;
-    const spread = Math.floor(Math.random() * 20) + 60;
+    const particleCount = Math.floor(Math.random() * 50) + 500;
+    const spread = Math.floor(Math.random() * 20) + 150;
     confetti({
         particleCount,
         spread,
@@ -184,16 +185,12 @@ function celebrate() {
         console.error('Error playing tinkle sound:', error);
     }
     stats.correctAnswers++;
-    if (stats.fastestTime === null || timerSeconds < stats.fastestTime) {
-        stats.fastestTime = timerSeconds;
-    }
     saveStats();
     setTimeout(() => {
         isCelebrating = false;
     }, 2000);
 }
 
-// Update the UI with the current abacus value and status
 function updateUI() {
     const currentValue = calculateAbacusValue();
     const currentValueElement = document.getElementById('currentValue');
@@ -201,30 +198,32 @@ function updateUI() {
     const statusElement = document.getElementById('status');
     const platformElement = document.getElementById('abacusPlatform');
     currentValueElement.textContent = currentValue;
+    statusElement.textContent = 'Keep adjusting the beads.';
+    statusElement.classList.remove('correct');
+    platformElement.classList.remove('correct');
+    targetElement.classList.remove('matched');
+    currentValueElement.classList.remove('matched');
+}
+
+function submitAnswer() {
+    stats.attempts++;
+    const currentValue = calculateAbacusValue();
     if (currentValue === targetNumber) {
+        const statusElement = document.getElementById('status');
+        const platformElement = document.getElementById('abacusPlatform');
+        const targetElement = document.getElementById('targetNumber');
+        const currentValueElement = document.getElementById('currentValue');
         statusElement.textContent = 'You matched the number!';
         statusElement.classList.add('correct');
         platformElement.classList.add('correct');
         targetElement.classList.add('matched');
         currentValueElement.classList.add('matched');
+        if (isTimerRunning && (stats.fastestTime === null || timerSeconds < stats.fastestTime)) {
+            stats.fastestTime = timerSeconds;
+        }
+        saveStats();
         pauseTimer();
         celebrate();
-    } else {
-        statusElement.textContent = 'Keep adjusting the beads.';
-        statusElement.classList.remove('correct');
-        platformElement.classList.remove('correct');
-        targetElement.classList.remove('matched');
-        currentValueElement.classList.remove('matched');
-    }
-}
-
-// Submit answer
-function submitAnswer() {
-    stats.attempts++;
-    saveStats();
-    const currentValue = calculateAbacusValue();
-    if (currentValue === targetNumber) {
-        updateUI();
     } else {
         const popup = document.getElementById('tryAgainPopup');
         const overlay = document.getElementById('overlay');
@@ -238,7 +237,6 @@ function submitAnswer() {
     }
 }
 
-// Close the popup
 function closePopup() {
     const popup = document.getElementById('tryAgainPopup');
     const overlay = document.getElementById('overlay');
@@ -246,7 +244,6 @@ function closePopup() {
     overlay.classList.remove('show');
 }
 
-// Clear abacus without changing target number
 function clearAbacus() {
     rodOrder.forEach(rodId => {
         abacusState[rodId] = 0;
@@ -255,7 +252,6 @@ function clearAbacus() {
     updateUI();
 }
 
-// Reset the abacus and generate a new target number
 function newQuestion() {
     rodOrder.forEach(rodId => {
         abacusState[rodId] = 0;
@@ -268,11 +264,11 @@ function newQuestion() {
     targetElement.textContent = targetNumber;
     targetElement.classList.add('fade-in');
     restartTimer();
+    startTimer();
     updateUI();
     closePopup();
 }
 
-// Dark Mode Toggle with Icon Switch
 function toggleDarkMode() {
     document.body.classList.toggle('dark');
     const isDarkMode = document.body.classList.contains('dark');
@@ -281,7 +277,6 @@ function toggleDarkMode() {
     localStorage.setItem('darkMode', isDarkMode ? 'true' : 'false');
 }
 
-// Load Dark Mode Preference
 function loadDarkMode() {
     const isDarkMode = localStorage.getItem('darkMode') === 'true';
     const darkModeIcon = document.getElementById('darkModeIcon');
@@ -293,7 +288,6 @@ function loadDarkMode() {
     }
 }
 
-// Attach event listeners
 document.querySelectorAll('.adjust-button').forEach(button => {
     button.addEventListener('click', (event) => {
         const rodId = event.target.closest('.flex-1').querySelector('.bead-container').id;
@@ -317,7 +311,6 @@ document.getElementById('maxDigits').addEventListener('change', () => {
     newQuestion();
 });
 
-// Initialize the game
 loadDarkMode();
 updateScoreDisplay();
 newQuestion();
