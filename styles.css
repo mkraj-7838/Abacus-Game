@@ -86,7 +86,7 @@ body.dark {
     border-radius: 50% / 20%;
     margin: 2px 0;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4);
-    transition: transform 0.1s cubic-bezier(0.36, 0, 0.66, -0.56), opacity 0.6s ease-out;
+    transition: transform 0.1s cubic-bezier(0.36, 0, 0.66, -0.56), opacity 0.3s ease-out;
     opacity: 0;
     transform: translateY(-100%);
 }
@@ -126,7 +126,7 @@ body.dark {
     100% { transform: scale(1); }
 }
 .animate-bounce-in {
-    animation: bounceIn 0.8s ease-out;
+    animation: bounceIn 0.4s ease-out;
 }
 :root {
     --tenThousands-color-start: #ff6666;

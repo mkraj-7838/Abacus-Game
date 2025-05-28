@@ -31,9 +31,9 @@ let stats = JSON.parse(localStorage.getItem('abacusGameStats')) || {
 };
 
 // Sound Effects (Child-Friendly)
-const popSound = new Audio('https://cdn.pixabay.com/audio/2022/01/25/03-24-07-260_48k.mp3'); // Soft pop for beads
-const tinkleSound = new Audio('https://cdn.pixabay.com/audio/2022/12/01/14-34-47-573_48k.mp3'); // Cheerful tinkle for success
-const boopSound = new Audio('https://cdn.pixabay.com/audio/2023/02/22/14-19-36-175_48k.mp3'); // Gentle boop for try again
+const popSound = new Audio('./pop.mp3'); // Soft pop for beads
+const tinkleSound = new Audio('./success.mp3'); // Cheerful tinkle for success
+const boopSound = new Audio('./failure.mp3'); // Gentle boop for try again
 
 // Update Score Display
 function updateScoreDisplay() {
