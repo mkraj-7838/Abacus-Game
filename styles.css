@@ -76,7 +76,7 @@ body.dark {
     bottom: 0;
     width: 100%;
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     align-items: center;
 }
 .bead {
@@ -86,44 +86,13 @@ body.dark {
     border-radius: 50% / 20%;
     margin: 2px 0;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4);
-    transition: transform 0.1s cubic-bezier(0.36, 0, 0.66, -0.56), opacity 0.3s ease-out;
-    opacity: 0;
-    transform: translateY(-100%);
+    opacity: 1;
 }
 @media (max-width: 640px) {
     .bead {
         max-width: 30px;
         height: 14px;
     }
-}
-.bead.visible {
-    opacity: 1;
-    transform: translateY(0);
-    animation: gravityFall 0.2s cubic-bezier(0.36, 0, 0.66, -0.56);
-}
-.bead.fade-out {
-    animation: fadeOut 0.1s ease forwards;
-}
-.bead.pop-in {
-    animation: popIn 0.1s ease forwards;
-}
-@keyframes gravityFall {
-    0% { transform: translateY(-100%); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
-}
-@keyframes fadeOut {
-    0% { opacity: 1; transform: scale(1); }
-    100% { opacity: 0; transform: scale(0.5); }
-}
-@keyframes popIn {
-    0% { opacity: 0; transform: scale(0.5); }
-    100% { opacity: 1; transform: scale(1); }
-}
-@keyframes bounceIn {
-    0% { opacity: 0; transform: scale(0.3); }
-    50% { opacity: 1; transform: scale(1.05); }
-    70% { transform: scale(0.9); }
-    100% { transform: scale(1); }
 }
 .animate-bounce-in {
     animation: bounceIn 0.4s ease-out;
@@ -257,6 +226,11 @@ label[for="maxDigits"] {
 .adjust-button {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.adjust-button:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
 .dark .adjust-button.bg-red-200 {
     background-color: #2c3e50;
 }
@@ -269,10 +243,10 @@ label[for="maxDigits"] {
 .dark .adjust-button:hover.bg-blue-500 {
     background-color: #5a82d1;
 }
-.adjust-button:hover {
+.adjust-button:not(:disabled):hover {
     transform: scale(1.1);
 }
-.adjust-button:active {
+.adjust-button:not(:disabled):active {
     transform: translateY(1px);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }

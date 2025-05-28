@@ -95,35 +95,25 @@ function generateTargetNumber() {
     return Math.floor(Math.random() * (maxNumber + 1));
 }
 
-function renderBeads(rodId, count, animateNew = false) {
+function renderBeads(rodId, count) {
     const rodElement = document.getElementById(rodId);
     const rod = rodElement.closest('.rod');
     rod.classList.add('pulse');
-    const existingBeads = rodElement.querySelectorAll('.bead');
-    existingBeads.forEach(bead => {
-        bead.classList.add('fade-out');
-    });
-    if (existingBeads.length !== count) {
+    rodElement.innerHTML = '';
+    if (rodElement.childElementCount !== count) {
         try {
             popSound.play();
         } catch (error) {
             console.error('Error playing pop sound:', error);
         }
     }
-    setTimeout(() => {
-        rodElement.innerHTML = '';
-        for (let i = 0; i < count; i++) {
-            const bead = document.createElement('div');
-            bead.className = 'bead';
-            rodElement.appendChild(bead);
-            if (animateNew && i === count - 1) {
-                setTimeout(() => bead.classList.add('pop-in'), 10);
-            } else {
-                setTimeout(() => bead.classList.add('visible'), 10);
-            }
-        }
-        rod.classList.remove('pulse');
-    }, 10);
+    for (let i = 0; i < count; i++) {
+        const bead = document.createElement('div');
+        bead.className = 'bead';
+        rodElement.prepend(bead);
+    }
+    rod.classList.remove('pulse');
+    updatePlusButtons();
 }
 
 function adjustBeads(rodId, change) {
@@ -159,10 +149,19 @@ function adjustBeads(rodId, change) {
             renderBeads(rodId, currentValue);
         }
     } else {
-        renderBeads(rodId, currentValue, change > 0);
+        renderBeads(rodId, currentValue);
     }
     abacusState[rodId] = currentValue;
     updateUI();
+}
+
+function updatePlusButtons() {
+    const plusButtonIds = ['tenThousandsPlus', 'thousandsPlus', 'hundredsPlus', 'tensPlus', 'unitsPlus'];
+    rodOrder.forEach((rodId, index) => {
+        const plusButton = document.getElementById(plusButtonIds[index]);
+        const shouldDisable = abacusState[rodId] === 9 && rodOrder.slice(0, index).every(higherRod => abacusState[higherRod] === 9);
+        plusButton.disabled = shouldDisable;
+    });
 }
 
 function calculateAbacusValue() {
@@ -203,6 +202,7 @@ function updateUI() {
     platformElement.classList.remove('correct');
     targetElement.classList.remove('matched');
     currentValueElement.classList.remove('matched');
+    updatePlusButtons();
 }
 
 function submitAnswer() {
@@ -292,7 +292,9 @@ document.querySelectorAll('.adjust-button').forEach(button => {
     button.addEventListener('click', (event) => {
         const rodId = event.target.closest('.flex-1').querySelector('.bead-container').id;
         const change = event.target.textContent === '+' ? 1 : -1;
-        adjustBeads(rodId, change);
+        if (!event.target.disabled) {
+            adjustBeads(rodId, change);
+        }
     });
 });
 
